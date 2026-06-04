@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "TENNIS AI",
+    "slug": "tennis-ai",
+    "version": "1.0.0",
+    "scheme": "tennisai",
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-document-picker",
+      "expo-asset",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
