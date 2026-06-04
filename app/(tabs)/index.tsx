@@ -48,17 +48,6 @@ function QuickQuestions({ onSend }: { onSend: (t: string) => void }) {
   );
 }
 
-function ApiKeyHint() {
-  return (
-    <View style={styles.apiHint}>
-      <Ionicons name="key-outline" size={14} color="#FFD700" />
-      <Text style={styles.apiHintText}>
-        {'  '}Claude APIキー未設定です。右上の設定から追加すると本番AI連携に切り替えられます。
-      </Text>
-    </View>
-  );
-}
-
 // ── Inline renderer: bold + clickable time refs ──────────────────
 
 // Matches "3:42" or "3:42〜5:10"
@@ -373,7 +362,6 @@ export default function CoachScreen() {
         >
           <HeroCard />
           <QuickQuestions onSend={(t) => { sendCoach(t); }} />
-          {settings.apiKey === '' && <ApiKeyHint />}
 
           <View style={styles.playerSelector}>
             <Text style={styles.playerSelectorLabel}>分析する選手の特徴</Text>

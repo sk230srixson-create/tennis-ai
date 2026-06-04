@@ -1,8 +1,8 @@
-// Vercel serverless function — forwards Claude API requests server-side to bypass CORS
+// Vercel serverless function — forwards Claude API requests using server-side API key
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type, x-api-key, anthropic-version, anthropic-beta, anthropic-dangerous-allow-browser');
+  res.setHeader('Access-Control-Allow-Headers', 'content-type, anthropic-version, anthropic-beta');
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -14,9 +14,9 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const apiKey = req.headers['x-api-key'];
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    res.status(401).json({ error: 'Missing x-api-key header' });
+    res.status(500).json({ error: 'ANTHROPIC_API_KEY is not configured on the server' });
     return;
   }
 

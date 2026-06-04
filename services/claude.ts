@@ -20,27 +20,18 @@ export class ClaudeError extends Error {
 }
 
 export async function claudeComplete(
-  apiKey: string,
   model: string,
   system: string | null,
   messages: Array<{ role: string; content: any }>,
   maxTokens: number,
 ): Promise<string> {
-  if (!apiKey.trim()) {
-    throw new ClaudeError('Claude APIキーが設定されていません。設定から追加してください。');
-  }
-
   const body: Record<string, unknown> = { model, max_tokens: maxTokens, messages };
   if (system) body.system = system;
 
   const headers: Record<string, string> = {
-    'x-api-key': apiKey,
     'anthropic-version': ANTHROPIC_VERSION,
     'content-type': 'application/json',
   };
-  if (Platform.OS !== 'web') {
-    headers['anthropic-dangerous-allow-browser'] = 'true';
-  }
 
   const response = await fetch(ENDPOINT, {
     method: 'POST',

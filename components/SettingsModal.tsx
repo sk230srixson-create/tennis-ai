@@ -10,20 +10,18 @@ import { PLAYER_LEVELS, PlayerLevel } from '../constants/types';
 
 export default function SettingsModal() {
   const { settings, settingsOpen, updateSettings, closeSettings, resetAll, showToast } = useStore();
-  const [apiKey, setApiKey] = useState(settings.apiKey);
   const [name, setName] = useState(settings.name);
   const [level, setLevel] = useState<PlayerLevel>(settings.level);
 
   useEffect(() => {
     if (settingsOpen) {
-      setApiKey(settings.apiKey);
       setName(settings.name);
       setLevel(settings.level);
     }
   }, [settingsOpen, settings]);
 
   const handleSave = () => {
-    updateSettings({ apiKey, name, level });
+    updateSettings({ name, level });
     showToast('設定を保存しました');
     closeSettings();
   };
@@ -42,17 +40,6 @@ export default function SettingsModal() {
         <View style={styles.handle} />
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.title}>設定</Text>
-
-          <Text style={styles.label}>Claude APIキー</Text>
-          <TextInput
-            style={styles.input}
-            value={apiKey}
-            onChangeText={setApiKey}
-            placeholder="sk-ant-..."
-            placeholderTextColor={Colors.subtext2}
-            secureTextEntry
-            autoCapitalize="none"
-          />
 
           <Text style={styles.label}>プレイヤー名</Text>
           <TextInput

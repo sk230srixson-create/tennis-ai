@@ -71,7 +71,7 @@ export const useStore = create<Store>()(
       matches: SAMPLE_MATCHES,
       stats: SAMPLE_STATS,
       memos: SAMPLE_MEMOS,
-      settings: { apiKey: '', name: 'プレイヤー', level: '中級者' },
+      settings: { name: 'プレイヤー', level: '中級者' },
       history: INITIAL_HISTORY,
       isTyping: false,
       videoProgress: '',
@@ -107,21 +107,11 @@ export const useStore = create<Store>()(
         set({ isTyping: true });
 
         const { settings, matches, stats, memos } = get();
-        const key = settings.apiKey.trim();
-
-        if (!key) {
-          set((s) => ({
-            history: [...s.history, { id: String(nowId()), role: 'assistant', content: 'Claude APIキーが未設定です。右上の設定からキーを追加すると本物のAIコーチが応答します。' }],
-            isTyping: false,
-          }));
-          return;
-        }
-
         const system = buildCoachSystem(settings, matches, stats, memos);
         const msgs = get().history.slice(-20).map((m) => ({ role: m.role, content: m.content }));
 
         try {
-          const reply = await claudeComplete(key, CHAT_MODEL, system, msgs, 1500);
+          const reply = await claudeComplete(CHAT_MODEL, system, msgs, 1500);
           set((s) => ({
             history: [...s.history, { id: String(nowId()), role: 'assistant', content: reply }],
             isTyping: false,
@@ -138,15 +128,6 @@ export const useStore = create<Store>()(
       analyzeVideo: async (uri, targetPlayer) => {
         set({ lastAnalysisError: null });
         const { settings } = get();
-        const key = settings.apiKey.trim();
-
-        if (!key) {
-          set((s) => ({
-            history: [...s.history, { id: String(nowId()), role: 'assistant', content: 'Claude APIキーが未設定のため動画解析を実行できません。設定からキーを追加してください。' }],
-          }));
-          return;
-        }
-
         set({ analyzedVideoUri: uri });
 
         let segments: import('../services/videoAnalyzer').VideoSegment[] = [];
@@ -199,7 +180,7 @@ export const useStore = create<Store>()(
 
           const content = buildImageContent(frames, prompt);
           try {
-            const analysis = await claudeComplete(key, VISION_MODEL, null, [{ role: 'user', content }], 1200);
+            const analysis = await claudeComplete(VISION_MODEL, null, [{ role: 'user', content }], 1200);
             partials.push(`【${timeLabel}】\n${analysis}`);
           } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : String(e);
@@ -248,7 +229,7 @@ ${partials.join('\n\n')}`;
 
         let report = '';
         try {
-          report = await claudeComplete(key, VISION_MODEL, null, [{ role: 'user', content: synthesizePrompt }], 3500);
+          report = await claudeComplete(VISION_MODEL, null, [{ role: 'user', content: synthesizePrompt }], 3500);
           set((s) => ({ history: [...s.history, { id: String(nowId()), role: 'assistant', content: report }] }));
         } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : String(e);
@@ -266,7 +247,7 @@ ${partials.join('\n\n')}`;
 {"s1in":数値,"s1tot":数値,"s2in":数値,"s2tot":数値,"ace":数値,"df":数値,"win":数値,"ufe":数値,"br":数値,"bp":数値,"bpsv":数値,"bpfc":数値}
 
 分析:\n${report}`;
-          const raw = await claudeComplete(key, CHAT_MODEL, null, [{ role: 'user', content: inferPrompt }], 150);
+          const raw = await claudeComplete(CHAT_MODEL, null, [{ role: 'user', content: inferPrompt }], 150);
           const parsed = parseInferredStats(raw);
           if (parsed) set({ pendingInferredStats: parsed });
         } catch { /* non-fatal */ }

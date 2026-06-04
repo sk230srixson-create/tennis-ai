@@ -1,7 +1,12 @@
+require('dotenv').config();
 const http = require('http');
 const https = require('https');
 
 const PORT = 3001;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
+if (!ANTHROPIC_API_KEY) {
+  console.warn('⚠️  ANTHROPIC_API_KEY が未設定です。.env ファイルに設定してください。');
+}
 
 const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -29,7 +34,7 @@ const server = http.createServer((req, res) => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': req.headers['x-api-key'] || '',
+        'x-api-key': ANTHROPIC_API_KEY,
         'anthropic-version': req.headers['anthropic-version'] || '2023-06-01',
       },
     };

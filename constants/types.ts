@@ -57,7 +57,6 @@ export interface TennisMemo {
 }
 
 export interface TennisSettings {
-  apiKey: string;
   name: string;
   level: PlayerLevel;
 }
