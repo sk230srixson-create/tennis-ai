@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 const NUM_SEGMENTS = 8;
-const FRAMES_PER_SEGMENT = 5;
+const FRAMES_PER_SEGMENT = 3;
 
 export interface VideoSegment {
   frames: string[];
@@ -35,8 +35,8 @@ function extractFramesWeb(uri: string): Promise<VideoSegment[]> {
 
       // eslint-disable-next-line no-undef
       const canvas = document.createElement('canvas') as HTMLCanvasElement;
-      canvas.width = 854;
-      canvas.height = 480;
+      canvas.width = 640;
+      canvas.height = 360;
       const ctx = canvas.getContext('2d')!;
 
       const results: VideoSegment[] = Array.from({ length: NUM_SEGMENTS }, (_, seg) => ({
@@ -65,7 +65,7 @@ function extractFramesWeb(uri: string): Promise<VideoSegment[]> {
         video.onseeked = () => {
           try {
             ctx.drawImage(video, 0, 0, 640, 360);
-            const b64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+            const b64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
             results[seg].frames.push(b64);
           } catch {
             // skip frame on draw error

@@ -188,7 +188,7 @@ export const useStore = create<Store>()(
           }
         }
 
-        set({ videoProgress: '全区間を統合分析中…' });
+        set({ videoProgress: '全区間を統合分析中（1〜2分かかる場合があります）…' });
         const synthesizePrompt =
 `以下はテニス試合動画の各区間詳細分析です（対象選手：「${targetPlayer}」）。
 全区間を横断して統合し、以下のMarkdown形式でコーチングレポートを作成してください。
@@ -229,7 +229,7 @@ ${partials.join('\n\n')}`;
 
         let report = '';
         try {
-          report = await claudeComplete(VISION_MODEL, null, [{ role: 'user', content: synthesizePrompt }], 3500);
+          report = await claudeComplete(CHAT_MODEL, null, [{ role: 'user', content: synthesizePrompt }], 2000);
           set((s) => ({ history: [...s.history, { id: String(nowId()), role: 'assistant', content: report }] }));
         } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : String(e);
