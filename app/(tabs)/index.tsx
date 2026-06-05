@@ -15,17 +15,106 @@ import { CoachMessage } from '../../constants/types';
 // ── Sub-components ──────────────────────────────────────────────
 
 function HeroCard() {
-  const { settings, stats } = useStore((s) => ({ settings: s.settings, stats: s.stats }));
+  const { settings } = useStore((s) => ({ settings: s.settings }));
   return (
     <View style={[shared.card, styles.heroCard]}>
-      <View style={[shared.row, { marginBottom: 12 }]}>
-        <Ionicons name="tennisball" size={36} color={Colors.lime} />
+      <View style={[shared.row, { marginBottom: 8 }]}>
+        <Ionicons name="tennisball" size={28} color={Colors.lime} />
         <View style={styles.levelBadge}>
           <Text style={styles.levelBadgeText}>{settings.level}</Text>
         </View>
       </View>
       <Text style={styles.heroTitle}>{settings.name}さんの{'\n'}勝ち筋をAIが整理</Text>
-      <Text style={styles.heroSub}>直近5試合・サーブ率・ウィナー/UFEを文脈に、前向きな日本語コーチングを返します。</Text>
+    </View>
+  );
+}
+
+const QUICK_LABELS_INNER = ['白いウェア', '赤いシャツ', '手前の選手', '奥の選手'];
+
+function VideoHeroCard({
+  targetPlayer,
+  onChangePlayer,
+  onUpload,
+  videoProgress,
+}: {
+  targetPlayer: string;
+  onChangePlayer: (v: string) => void;
+  onUpload: () => void;
+  videoProgress: string;
+}) {
+  const isAnalyzing = videoProgress !== '';
+  return (
+    <View style={styles.videoHeroCard}>
+      {/* Header */}
+      <View style={styles.videoHeroHeader}>
+        <View style={styles.videoHeroIconWrap}>
+          <Ionicons name="videocam" size={22} color={Colors.lime} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.videoHeroTitle}>AI 動画解析</Text>
+          <Text style={styles.videoHeroSub}>フォーム・配球・戦術をフレームごとに分析</Text>
+        </View>
+        <View style={styles.videoBadge}>
+          <Text style={styles.videoBadgeText}>主要機能</Text>
+        </View>
+      </View>
+
+      {/* Player selector */}
+      <View style={styles.videoPlayerRow}>
+        <Text style={styles.videoPlayerLabel}>分析する選手</Text>
+        <TextInput
+          style={styles.videoPlayerInput}
+          value={targetPlayer}
+          onChangeText={onChangePlayer}
+          placeholder="例：白いウェア、手前の選手"
+          placeholderTextColor={Colors.subtext2}
+        />
+        <View style={styles.videoPlayerChips}>
+          {QUICK_LABELS_INNER.map((label) => (
+            <Pressable
+              key={label}
+              style={[styles.chip, targetPlayer === label && styles.chipActive]}
+              onPress={() => onChangePlayer(label)}
+            >
+              <Text style={[styles.chipText, targetPlayer === label && styles.chipTextActive]}>
+                {label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {/* Upload button */}
+      <Pressable style={[styles.videoBigBtn, isAnalyzing && styles.videoBigBtnDisabled]} onPress={onUpload} disabled={isAnalyzing}>
+        <LinearGradient
+          colors={isAnalyzing ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)'] : [Colors.lime, Colors.cyan]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.videoBigBtnGradient}
+        >
+          <Ionicons
+            name={isAnalyzing ? 'hourglass-outline' : 'cloud-upload-outline'}
+            size={26}
+            color={isAnalyzing ? Colors.subtext : '#000'}
+          />
+          <View>
+            <Text style={[styles.videoBigBtnText, isAnalyzing && { color: Colors.subtext }]}>
+              {isAnalyzing ? '解析中…' : '試合動画をアップロード'}
+            </Text>
+            {!isAnalyzing && (
+              <Text style={styles.videoBigBtnSub}>AIがフレームごとに詳細分析します</Text>
+            )}
+          </View>
+        </LinearGradient>
+      </Pressable>
+
+      {/* Progress */}
+      {isAnalyzing && (
+        <View style={styles.progressRow}>
+          <Ionicons name="sync-outline" size={13} color={Colors.cyan} />
+          <Text style={styles.progressText}>{videoProgress}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -38,12 +127,15 @@ function QuickQuestions({ onSend }: { onSend: (t: string) => void }) {
     { label: '📊 分析', text: '試合データを分析してアドバイスをください' },
   ];
   return (
-    <View style={styles.quickGrid}>
-      {items.map((item) => (
-        <Pressable key={item.label} style={styles.quickBtn} onPress={() => onSend(item.text)}>
-          <Text style={styles.quickBtnText}>{item.label}</Text>
-        </Pressable>
-      ))}
+    <View>
+      <Text style={styles.sectionLabel}>テキストで相談する</Text>
+      <View style={styles.quickGrid}>
+        {items.map((item) => (
+          <Pressable key={item.label} style={styles.quickBtn} onPress={() => onSend(item.text)}>
+            <Text style={styles.quickBtnText}>{item.label}</Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
@@ -251,8 +343,6 @@ function TypingDots() {
 
 // ── Main Screen ──────────────────────────────────────────────────
 
-const QUICK_LABELS = ['白いウェア', '赤いシャツ', '手前の選手', '奥の選手'];
-
 export default function CoachScreen() {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
@@ -361,43 +451,16 @@ export default function CoachScreen() {
           onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
         >
           <HeroCard />
-          <QuickQuestions onSend={(t) => { sendCoach(t); }} />
 
-          <View style={styles.playerSelector}>
-            <Text style={styles.playerSelectorLabel}>分析する選手の特徴</Text>
-            <Text style={styles.playerSelectorHint}>
-              外見で指定するとコートチェンジ後も追跡できます
-            </Text>
-            <TextInput
-              style={styles.playerInput}
-              value={targetPlayer}
-              onChangeText={setTargetPlayer}
-              placeholder="例：白いウェア、赤いシャツ、手前の選手"
-              placeholderTextColor={Colors.subtext2}
-            />
-            <View style={styles.playerSelectorRow}>
-              {QUICK_LABELS.map((label) => (
-                <Pressable
-                  key={label}
-                  style={[styles.playerBtn, targetPlayer === label && styles.playerBtnActive]}
-                  onPress={() => setTargetPlayer(label)}
-                >
-                  <Text style={[styles.playerBtnText, targetPlayer === label && styles.playerBtnTextActive]}>
-                    {label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          <Pressable style={styles.videoBtn} onPress={handleVideoUpload}>
-            <Ionicons name="videocam-outline" size={20} color="#000" />
-            <Text style={styles.videoBtnText}>試合動画をアップロードして解析</Text>
-          </Pressable>
-          {videoProgress !== '' && (
-            <Text style={styles.progress}>{videoProgress}</Text>
-          )}
+          <VideoHeroCard
+            targetPlayer={targetPlayer}
+            onChangePlayer={setTargetPlayer}
+            onUpload={handleVideoUpload}
+            videoProgress={videoProgress}
+          />
           <VideoPlayerPanel />
+
+          <QuickQuestions onSend={(t) => { sendCoach(t); }} />
           {pendingInferredStats && (
             <Pressable style={styles.inferBanner} onPress={handleConfirmStats}>
               <Text style={styles.inferText}>
@@ -432,15 +495,16 @@ export default function CoachScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  listContent: { padding: 16, gap: 12, paddingBottom: 16 },
+  listContent: { padding: 16, gap: 14, paddingBottom: 16 },
 
+  // Hero card (compact)
   heroCard: {
     marginBottom: 0,
     borderColor: 'rgba(255,255,255,0.1)',
     overflow: 'hidden',
+    paddingVertical: 12,
   },
-  heroTitle: { color: Colors.text, fontSize: 26, fontWeight: '900', lineHeight: 32, marginBottom: 6 },
-  heroSub: { color: Colors.subtext, fontSize: 13, lineHeight: 18 },
+  heroTitle: { color: Colors.text, fontSize: 22, fontWeight: '900', lineHeight: 28 },
   levelBadge: {
     marginLeft: 'auto',
     backgroundColor: `${Colors.cyan}29`,
@@ -450,81 +514,102 @@ const styles = StyleSheet.create({
   },
   levelBadgeText: { color: Colors.cyan, fontSize: 12, fontWeight: '700' },
 
+  // Video hero card
+  videoHeroCard: {
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: `${Colors.lime}66`,
+    backgroundColor: 'rgba(198,255,46,0.04)',
+    padding: 18,
+    gap: 14,
+  },
+  videoHeroHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  videoHeroIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: `${Colors.lime}22`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: `${Colors.lime}44`,
+  },
+  videoHeroTitle: { color: Colors.text, fontSize: 17, fontWeight: '800' },
+  videoHeroSub: { color: Colors.subtext, fontSize: 11, marginTop: 2 },
+  videoBadge: {
+    backgroundColor: Colors.lime,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  videoBadgeText: { color: '#000', fontSize: 10, fontWeight: '800' },
+
+  // Player selector inside video card
+  videoPlayerRow: { gap: 8 },
+  videoPlayerLabel: { color: Colors.subtext, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  videoPlayerInput: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: Colors.text,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  videoPlayerChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  chip: {
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  chipActive: { backgroundColor: `${Colors.lime}22`, borderColor: Colors.lime },
+  chipText: { color: Colors.subtext, fontSize: 12, fontWeight: '600' },
+  chipTextActive: { color: Colors.lime },
+
+  // Big upload button
+  videoBigBtn: { borderRadius: 16, overflow: 'hidden' },
+  videoBigBtnDisabled: { opacity: 0.7 },
+  videoBigBtnGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+  },
+  videoBigBtnText: { color: '#000', fontSize: 17, fontWeight: '800' },
+  videoBigBtnSub: { color: 'rgba(0,0,0,0.55)', fontSize: 11, marginTop: 2 },
+
+  // Progress inside card
+  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  progressText: { color: Colors.cyan, fontSize: 12, fontWeight: '700', flex: 1 },
+
+  // Section label
+  sectionLabel: {
+    color: Colors.subtext,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 2,
+  },
+
+  // Quick questions
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   quickBtn: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 16,
-    padding: 13,
-    alignItems: 'center',
-  },
-  quickBtnText: { color: Colors.text, fontSize: 13, fontWeight: '700' },
-
-  apiHint: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: 'rgba(255,215,0,0.1)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderRadius: 14,
     padding: 12,
-  },
-  apiHintText: { color: '#FFD700', fontSize: 12, flex: 1, lineHeight: 17 },
-
-  playerSelector: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 16,
-    padding: 14,
-    gap: 10,
-  },
-  playerSelectorLabel: {
-    color: Colors.subtext,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  playerSelectorHint: {
-    color: Colors.subtext2,
-    fontSize: 11,
-    lineHeight: 15,
-    marginTop: -4,
-  },
-  playerInput: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    padding: 12,
-    color: Colors.text,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  playerSelectorRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  playerBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  playerBtnActive: {
-    backgroundColor: `${Colors.cyan}33`,
-    borderColor: Colors.cyan,
-  },
-  playerBtnText: { color: Colors.subtext, fontSize: 12, fontWeight: '600' },
-  playerBtnTextActive: { color: Colors.cyan },
-
-  videoBtn: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.lime,
-    borderRadius: 18,
-    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
-  videoBtnText: { color: '#000', fontSize: 15, fontWeight: '700' },
-
-  progress: { color: Colors.cyan, fontSize: 12, fontWeight: '700' },
+  quickBtnText: { color: Colors.text, fontSize: 13, fontWeight: '600' },
 
   // Video player panel
   videoPanel: {
