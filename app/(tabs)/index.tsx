@@ -24,7 +24,7 @@ function HeroCard() {
           <Text style={styles.levelBadgeText}>{settings.level}</Text>
         </View>
       </View>
-      <Text style={styles.heroTitle}>{settings.name}さんの{'\n'}勝ち筋をAIが整理</Text>
+      <Text style={styles.heroTitle} numberOfLines={1} adjustsFontSizeToFit>{settings.name}さんの勝ち筋をAIが整理</Text>
     </View>
   );
 }
