@@ -29,8 +29,6 @@ function HeroCard() {
   );
 }
 
-const QUICK_LABELS_INNER = ['白いウェア', '赤いシャツ', '手前の選手', '奥の選手'];
-
 function VideoHeroCard({
   targetPlayer,
   onChangePlayer,
@@ -66,22 +64,9 @@ function VideoHeroCard({
           style={styles.videoPlayerInput}
           value={targetPlayer}
           onChangeText={onChangePlayer}
-          placeholder="例：白いウェア、手前の選手"
+          placeholder="例：白いウェア、赤いシャツ"
           placeholderTextColor={Colors.subtext2}
         />
-        <View style={styles.videoPlayerChips}>
-          {QUICK_LABELS_INNER.map((label) => (
-            <Pressable
-              key={label}
-              style={[styles.chip, targetPlayer === label && styles.chipActive]}
-              onPress={() => onChangePlayer(label)}
-            >
-              <Text style={[styles.chipText, targetPlayer === label && styles.chipTextActive]}>
-                {label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
       </View>
 
       {/* Upload button */}
@@ -558,17 +543,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
   },
   videoPlayerChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: {
-    paddingHorizontal: 11,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  chipActive: { backgroundColor: `${Colors.lime}22`, borderColor: Colors.lime },
-  chipText: { color: Colors.subtext, fontSize: 12, fontWeight: '600' },
-  chipTextActive: { color: Colors.lime },
 
   // Big upload button
   videoBigBtn: { borderRadius: 16, overflow: 'hidden' },
