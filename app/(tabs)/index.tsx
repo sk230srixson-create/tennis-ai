@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
-  quickBtnText: { color: Colors.subtext, fontSize: 13, fontWeight: '600' },
+  quickBtnText: { color: Colors.text, fontSize: 13, fontWeight: '600' },
 
   // Video player panel
   videoPanel: {
